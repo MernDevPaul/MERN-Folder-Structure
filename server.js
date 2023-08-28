@@ -21,7 +21,7 @@ serviceInstance.init();
 // path access 
 app.use("/public/uploads/", express.static(path.join(__dirname, "public/uploads")));
 //Allow Cross-Origin requests
-app.use(cors());
+app.use(cors({}));
 // Set security HTTP headers
 app.use(helmet());
 // Prevent http param pollution

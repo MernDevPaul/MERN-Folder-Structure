@@ -17,89 +17,165 @@ class Service {
     this.asyncHandler = asyncHandler;
   }
   async create(model, data) {
-    return await model.create(data);
+    try {
+      const createdItem = await model.create(data);
+      return createdItem;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async createMany(model, data) {
-    return await model.insertMany(data);
+    try {
+      const createdItems = await model.insertMany(data);
+      return createdItems;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async update(model, conditions, update, options) {
-    return await model.findOneAndUpdate(conditions, update, options);
+    try {
+      const updatedItem = await model.findOneAndUpdate(
+        conditions,
+        update,
+        options
+      );
+      return updatedItem;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async updateById(model, id, update, options) {
-    return await model.findByIdAndUpdate(id, update, options);
+    try {
+      const updatedItem = await model.findByIdAndUpdate(id, update, options);
+      return updatedItem;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async updateMany(model, conditions, update, options) {
-    return await model.updateMany(conditions, update, options);
+    try {
+      const updateResult = await model.updateMany(conditions, update, options);
+      return updateResult;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async delete(model, conditions) {
-    return await model.findOneAndDelete(conditions);
+    try {
+      const deletedItem = await model.findOneAndDelete(conditions);
+      return deletedItem;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async deleteById(model, id) {
-    return await model.findByIdAndDelete(id);
+    try {
+      const deletedItem = await model.findByIdAndDelete(id);
+      return deletedItem;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async deleteMany(model, conditions) {
-    return await model.deleteMany(conditions);
-  }
-
-  async findOne(model, query, projection, extension={}) {
-    const { options, populate } = extension;
-    return await model
-      .findOne(query, projection, options)
-      .populate(populate)
-      .exec();
-  }
-
-  async findOneById(model, id, projection, extension={}) {
-    const { options, populate } = extension;
-    return await model
-      .findById(id, projection, options)
-      .populate(populate)
-      .exec();
-  }
-
-  async find(model, query, projection, extension={}) {
-    const { populate, sort, limit, options, count } = extension;
-    let queryObj = model.find(query, projection, options);
-    if (populate) queryObj = queryObj.populate(populate);
-    if (sort) queryObj = queryObj.sort(sort);
-    if (limit) queryObj = queryObj.limit(limit);
-
-    const execQuery = queryObj.exec();
-    if (count) {
-      const countResult = this.model.countDocuments(query);
-      return Promise.all([execQuery, countResult]).then(([data, count]) => ({
-        data,
-        count,
-      }));
+    try {
+      const deleteResult = await model.deleteMany(conditions);
+      return deleteResult;
+    } catch (error) {
+      throw error;
     }
-
-    return execQuery;
   }
 
-  async getAggregation(model, query, extension={}) {
+  async findOne(model, query, projection, extension = {}) {
+    const { options, populate } = extension;
+    try {
+      const foundItem = await model
+        .findOne(query, projection, options)
+        .populate(populate)
+        .exec();
+      return foundItem;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findOneById(model, id, projection, extension = {}) {
+    const { options, populate } = extension;
+    try {
+      const foundItem = await model
+        .findById(id, projection, options)
+        .populate(populate)
+        .exec();
+      return foundItem;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async find(model, query, projection, extension = {}) {
+    const { populate, sort, limit, options, count } = extension;
+    try {
+      let queryObj = model.find(query, projection, options);
+      if (populate) queryObj = queryObj.populate(populate);
+      if (sort) queryObj = queryObj.sort(sort);
+      if (limit) queryObj = queryObj.limit(limit);
+
+      const execQuery = queryObj.exec();
+      if (count) {
+        const countResult = this.model.countDocuments(query);
+        const [data, count] = await Promise.all([execQuery, countResult]);
+        return { data, count };
+      }
+      return execQuery;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAggregation(model, query, extension = {}) {
     const { populate } = extension;
-    let aggregation = model.aggregate(query);
-    if (populate) aggregation = aggregation.populate({ path: populate });
-    return aggregation.exec();
+    try {
+      let aggregation = model.aggregate(query);
+      if (populate) aggregation = aggregation.populate({ path: populate });
+      return aggregation.exec();
+    } catch (error) {
+      throw error;
+    }
   }
 
   async getCount(model, conditions) {
-    return await model.countDocuments(conditions);
+    try {
+      const count = await model.countDocuments(conditions);
+      return count;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async createToken(id) {
-    return await this.jwt.sign({ id }, this.config.JWT_SECRET, { expiresIn: "30d" });
+    try {
+      const token = await this.jwt.sign({ id }, this.config.JWT_SECRET, {
+        expiresIn: "30d",
+      });
+      return token;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async verifyToken(token) {
-    return await this.jwt.verify(token, this.config.JWT_SECRET);
+    try {
+      const decodedToken = this.jwt.verify(token, this.config.JWT_SECRET);
+      return decodedToken;
+    } catch (error) {
+      throw new Error("Invalid token");
+    }
   }
 
   uploadSingle(image) {
@@ -139,24 +215,28 @@ class Service {
   }
 
   async sendMail(options) {
-    const transporter = nodemailer.createTransport({
-      host: this.config.SMPT_HOST,
-      port: this.config.SMPT_PORT,
-      service: this.config.SMPT_SERVICE,
-      auth: {
-        user: this.config.SMPT_MAIL,
-        pass: this.config.SMPT_PASSWORD,
-      },
-    });
+    try {
+      const transporter = nodemailer.createTransport({
+        host: this.config.SMPT_HOST,
+        port: this.config.SMPT_PORT,
+        service: this.config.SMPT_SERVICE,
+        auth: {
+          user: this.config.SMPT_MAIL,
+          pass: this.config.SMPT_PASSWORD,
+        },
+      });
 
-    const mailOptions = {
-      from: this.config.SMPT_MAIL,
-      to: options.email,
-      subject: options.subject,
-      html: options.message,
-    };
+      const mailOptions = {
+        from: this.config.SMPT_MAIL,
+        to: options.email,
+        subject: options.subject,
+        html: options.message,
+      };
 
-    await transporter.sendMail(mailOptions);
+      await transporter.sendMail(mailOptions);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async validateId(id, meg) {
@@ -184,14 +264,24 @@ class Service {
   }
 
   async auth(req, res, next) {
-    const token = req?.headers?.authorization?.split(" ")[1];
-    if(!token) return this.error(res, 401, true, "Unauthorized");
-    const decoded = await this.verifyToken(token);
-    if (!decoded) return this.error(res, 401, true, "Unauthorized");
-    const verify_admin = await this.admin.findOne({ _id: decoded.id });
-    if (!verify_admin) return this.error(res, 401, true, "Unauthorized");
-    req.admin = verify_admin;
-    next();
+    try {
+      const token = req?.headers?.authorization?.split(" ")[1];
+      if (!token) {
+        throw new Error("Unauthorized");
+      }
+      const decoded = await this.verifyToken(token);
+      if (!decoded) {
+        throw new Error("Invalid token");
+      }
+      const verify_admin = await this.admin.findOne({ _id: decoded.id });
+      if (!verify_admin) {
+        throw new Error("Unauthorized");
+      }
+      req.admin = verify_admin;
+      next();
+    } catch (error) {
+      this.error(res, 401, true, error.message);
+    }
   }
 }
 
